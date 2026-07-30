@@ -1,0 +1,34 @@
+{
+  "name": "qortium-paint",
+  "version": "1.5.0",
+  "private": true,
+  "license": "0BSD",
+  "description": "A raster paint and image-editing app for Qortium Home: draw, join images, save locally, or publish to QDN.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "qdn:publish": "node scripts/publish-qdn.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/comic-neue": "^5.2.7",
+    "@fontsource/fredoka": "^5.2.10",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/lexend": "^5.2.7",
+    "@vitejs/plugin-react": "^6.0.4",
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.5",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.10"
+  }
+}
