@@ -49,6 +49,36 @@ type ColorPickListener = (color: string) => void;
 type TextRequestListener = (position: Point) => void;
 type PanListener = (dx: number, dy: number) => void;
 
+// Import guards: reject hostile or runaway inputs before they reach the
+// decoder. SVG is deliberately excluded — it is not a raster format and can
+// carry active content.
+export const MAX_IMPORT_BYTES = 32 * 1024 * 1024;
+export const MAX_IMPORT_PIXELS = 32 * 1024 * 1024;
+const IMPORT_MIME_ALLOWLIST = new Set([
+  'image/avif',
+  'image/bmp',
+  'image/gif',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
+
+export function validateImportBlob(blob: { size: number; type: string }): void {
+  if (blob.size > MAX_IMPORT_BYTES) {
+    throw new Error(`Image is larger than the ${MAX_IMPORT_BYTES / (1024 * 1024)} MiB import limit.`);
+  }
+
+  if (!IMPORT_MIME_ALLOWLIST.has(blob.type)) {
+    throw new Error('Unsupported image format. Use PNG, JPEG, WebP, GIF, BMP, or AVIF.');
+  }
+}
+
+export function validateDecodedSize(width: number, height: number): void {
+  if (width < 1 || height < 1 || width * height > MAX_IMPORT_PIXELS) {
+    throw new Error('Image dimensions are too large to import safely.');
+  }
+}
+
 function sourceSize(source: CanvasImageSource): { width: number; height: number } {
   if (source instanceof HTMLImageElement) {
     return { width: source.naturalWidth || source.width, height: source.naturalHeight || source.height };
@@ -283,7 +313,19 @@ export class PaintEngine implements PaintEngineApi {
   }
 
   async importImage(source: Blob): Promise<void> {
+    validateImportBlob(source);
+
     const decoded = await decodeBlob(source);
+    const { width: srcWidth, height: srcHeight } = sourceSize(decoded);
+
+    try {
+      validateDecodedSize(srcWidth, srcHeight);
+    } catch (error) {
+      if (typeof ImageBitmap !== 'undefined' && decoded instanceof ImageBitmap) {
+        decoded.close();
+      }
+      throw error;
+    }
 
     if (this.destroyed) {
       return;
@@ -297,7 +339,6 @@ export class PaintEngine implements PaintEngineApi {
       this.previousTool = this.tool === 'place' ? 'brush' : this.tool;
     }
 
-    const { width: srcWidth, height: srcHeight } = sourceSize(decoded);
     const fitted = fitWithin(srcWidth, srcHeight, this.width, this.height);
 
     this.floating = {

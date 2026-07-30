@@ -201,6 +201,10 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
 
     const unsubscribe = engine.subscribe((state) => {
       if (!state.dirty) {
+        // Cancel any pending write: a stale timer firing after save/publish
+        // cleared the slot would recreate a misleading restore prompt.
+        window.clearTimeout(timer);
+
         return;
       }
 
@@ -334,7 +338,9 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
         return;
       }
 
-      engine.importImage(file).catch(() => setToast('Could not open that image.'));
+      engine.importImage(file).catch((error: unknown) => {
+        setToast(error instanceof Error && error.message ? error.message : 'Could not open that image.');
+      });
     },
     [engine],
   );

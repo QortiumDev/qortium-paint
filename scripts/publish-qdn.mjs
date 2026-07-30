@@ -424,7 +424,7 @@ async function ensureNameRegistered(name, account) {
     name,
     data: JSON.stringify({
       app: 'Paint',
-      purpose: 'QDN notification manager preview',
+      purpose: 'QDN raster paint app preview',
     }),
   });
 
