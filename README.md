@@ -50,3 +50,23 @@ header. Versioning follows QAVS (`qortium-app.json` emitted at build time; app
 ## License
 
 0BSD — see [LICENSE](LICENSE).
+
+## Developers workspace (1.5.1)
+
+Open `qdn://APP/Paint/Paint?view=developers` for the public English reference:
+editor/recovery, import/export limits, QDN authority and copyable examples.
+`developer` and `reference` aliases normalize to `developers`; section links,
+unrelated/repeated parameters and hashes survive Home history navigation.
+The editor stays mounted across workspace changes, retaining pixels, undo/redo,
+zoom, floating imports and dialog state. Its hotkeys and paste pause while the
+reference is visible. Apply floating images before exporting or relying on
+recovery snapshots; only committed pixels are saved.
+
+Home appearance includes Classic/Modern/Fun, all text sizes and the clay accent.
+The UI remains English; the reference explicitly uses English/LTR. This update
+adds no Qortal integration. Local downloads are requests to the browser and keep
+the drawing dirty so recovery remains available; an accepted QDN publish clears
+recovery data. Fresh file downloads are unsupported by Qortium Home 2.x on
+Android. `SAVE_QDN_RESOURCE` saves already-published content and does not save a
+new drawing. Local downloads are distinct from public QDN writes; Home
+acceptance is distinct from chain confirmation and served-data availability.
