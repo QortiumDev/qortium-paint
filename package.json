@@ -17,7 +17,7 @@
     "@fontsource/fredoka": "^5.2.10",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/lexend": "^5.2.7",
-    "@vitejs/plugin-react": "^6.1.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "lucide-react": "^0.577.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
