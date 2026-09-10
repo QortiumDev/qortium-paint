@@ -5,19 +5,27 @@
 // qortium-paint is English-only in v1. Keep this module dependency-free.
 
 export const TEXT_SIZE_VALUES = ['extra-small', 'small', 'medium', 'large', 'extra-large', 'huge'] as const;
-export const ACCENT_OPTIONS = ['green', 'blue', 'orange', 'purple', 'red', 'teal', 'cyan', 'pink', 'yellow'] as const;
+export const ACCENT_OPTIONS = ['clay', 'green', 'blue', 'orange', 'purple', 'red', 'teal', 'cyan', 'pink', 'yellow'] as const;
 
+export const UI_STYLES = ['classic', 'modern', 'fun'] as const;
+export type QdnUiStyle = (typeof UI_STYLES)[number];
+export function normalizeUiStyle(value: unknown): QdnUiStyle | null {
+ const text = typeof value === 'string' ? value.trim().toLowerCase() : '';
+ return UI_STYLES.includes(text as QdnUiStyle) ? text as QdnUiStyle : null;
+}
 export type QdnTheme = 'dark' | 'light';
 export type QdnTextSize = (typeof TEXT_SIZE_VALUES)[number];
 export type QdnAccent = (typeof ACCENT_OPTIONS)[number];
 
 export type QdnDisplaySettings = {
+  uiStyle: QdnUiStyle;
   accent: QdnAccent;
   textSize: QdnTextSize;
   theme: QdnTheme;
 };
 
 export const DEFAULT_DISPLAY_SETTINGS: QdnDisplaySettings = {
+  uiStyle: 'classic',
   accent: 'green',
   textSize: 'medium',
   theme: 'light',
@@ -62,6 +70,7 @@ export function getInitialDisplaySettings(): QdnDisplaySettings {
   const query = typeof window === 'undefined' ? null : new URLSearchParams(window.location?.search ?? '');
 
   return {
+    uiStyle: normalizeUiStyle(query?.get('uiStyle') ?? query?.get('ui-style') ?? hostWindow?._qdnUiStyle ?? hostWindow?._qdnUIStyle) ?? DEFAULT_DISPLAY_SETTINGS.uiStyle,
     accent: normalizeAccent(query?.get('accent') ?? hostWindow?._qdnAccent) ?? DEFAULT_DISPLAY_SETTINGS.accent,
     textSize:
       normalizeTextSize(query?.get('textSize') ?? query?.get('text-size')) ??
@@ -78,6 +87,7 @@ export function applyDisplaySettings(settings: QdnDisplaySettings) {
 
   const root = document.documentElement;
 
+  root.dataset.ui = settings.uiStyle;
   root.dataset.accent = settings.accent;
   root.dataset.textSize = settings.textSize;
   root.dataset.theme = settings.theme;
@@ -99,6 +109,10 @@ export function getDisplaySettingsUpdateFromMessage(
   }
 
   switch (data.action) {
+    case 'UI_STYLE_CHANGED': {
+      const uiStyle = normalizeUiStyle(data.uiStyle ?? data.ui ?? data.qdnUiStyle ?? data.qdnUIStyle);
+      return uiStyle ? { ...current, uiStyle } : null;
+    }
     case 'ACCENT_CHANGED': {
       const accent = normalizeAccent(data.accent ?? data.qdnAccent);
 
@@ -106,6 +120,7 @@ export function getDisplaySettingsUpdateFromMessage(
     }
     case 'DISPLAY_SETTINGS_CHANGED': {
       return {
+        uiStyle: normalizeUiStyle(data.uiStyle ?? data.ui ?? data.qdnUiStyle ?? data.qdnUIStyle) ?? current.uiStyle,
         accent: normalizeAccent(data.accent ?? data.qdnAccent) ?? current.accent,
         textSize: normalizeTextSize(data.textSize ?? data.qdnTextSize) ?? current.textSize,
         theme: normalizeTheme(data.theme ?? data.qdnTheme) ?? current.theme,

@@ -699,3 +699,37 @@ body {
     display: none;
   }
 }
+
+/* Workspaces keep the editor mounted without a second active input surface. */
+.qp-workspace { height:100%; display:grid; grid-template-rows:auto minmax(0,1fr); min-width:0; }
+.qp-workspace-tabs { display:flex; flex-wrap:wrap; gap:.5rem; padding:.5rem; background:var(--qp-surface); border-bottom:1px solid var(--qp-border); }
+.qp-workspace-tabs [aria-pressed='true'] { background:var(--qp-accent-soft); border-color:var(--qp-accent); }
+.qp-editor { min-height:0; min-width:0; overflow:auto; }
+[hidden] { display:none !important; }
+.qp-reference { display:flex; flex-direction:column; min-height:0; min-width:0; padding:1rem; }
+.qp-reference header { overflow:auto; max-height:45%; flex-shrink:0; }
+.qp-reference h1 { margin:0 0 .5rem; font-size:1.4rem; }
+.qp-reference small { font-size:.65em; }
+.qp-reference nav { display:flex; flex-wrap:wrap; gap:.4rem 1rem; }
+.qp-reference a { color:var(--qp-text); text-decoration:underline; }
+.qp-reference .copy-status { font-size:.8rem; }
+.qp-reference-scroll { overflow:auto; min-height:0; line-height:1.55; overflow-wrap:anywhere; }
+.qp-reference section { outline-offset:-2px; }
+.qp-reference pre { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--qp-surface-2); padding:.7rem; }
+.qp-reference-example { margin-block:1rem; }
+html[data-accent='clay'] { --qp-accent:#9a6750; --qp-accent-soft:rgba(154,103,80,.18); }
+html[data-ui='classic'] { --qp-radius:2px; --qp-radius-small:2px; --qp-font-body:Arial,sans-serif; --qp-font-display:Arial,sans-serif; }
+html[data-ui='fun'] { --qp-radius:16px; --qp-radius-small:12px; --qp-font-display:'Fredoka',sans-serif; --qp-font-body:'Comic Neue',sans-serif; }
+html[data-text-size='extra-small'] { font-size:13.6px; }
+html[data-text-size='small'] { font-size:14.8px; }
+html[data-text-size='medium'] { font-size:16px; }
+html[data-text-size='large'] { font-size:18.4px; }
+html[data-text-size='extra-large'] { font-size:21.6px; }
+html[data-text-size='huge'] { font-size:33.6px; }
+.qp-app { min-width:0; min-height:20rem; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto minmax(8rem,1fr) auto; }
+.qp-topbar-group { flex-wrap:wrap; min-width:0; }
+.qp-statusbar { flex-wrap:wrap; gap:.4rem; }
+.qp-menu { min-width:0; width:min(15rem,80vw); }
+.qp-menu button { white-space:normal; }
+.qp-field-row,.qp-radio-row,.qp-modal-actions { flex-wrap:wrap; }
+.qp-field,.qp-field input,.qp-field textarea { min-width:0; max-width:100%; }

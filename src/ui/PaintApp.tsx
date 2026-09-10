@@ -20,8 +20,7 @@ import { PublishDialog, ResizeDialog, SaveDialog } from './dialogs';
 import { StatusBar } from './StatusBar';
 import { Toolbar } from './Toolbar';
 
-const AUTOSAVE_KEY = 'qortium-paint.autosave.v1';
-const AUTOSAVE_DEBOUNCE_MS = 2000;
+import { AUTOSAVE_KEY, AUTOSAVE_DEBOUNCE_MS } from '../editorContract';
 const TEXT_FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif";
 
 const TOOL_HOTKEYS: Record<string, ToolId> = {
@@ -111,7 +110,7 @@ function TextEntryOverlay({ color, fontSize, onCancel, onCommit, x, y, zoom }: T
   );
 }
 
-export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
+export function PaintApp({ qdn, active = true }: { qdn: QdnServicesApi; active?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -240,7 +239,7 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!engine) {
+      if (!active || !engine) {
         return;
       }
 
@@ -305,7 +304,7 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
     window.addEventListener('keydown', onKeyDown);
 
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [dialog, engine, engineState, saveMenuOpen, textEntry]);
+  }, [active, dialog, engine, engineState, saveMenuOpen, textEntry]);
 
   // ---- Unsaved-changes guard --------------------------------------------------
 
@@ -347,7 +346,7 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
 
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {
-      if (dialog !== null || textEntry !== null || isEditableTarget(event.target)) {
+      if (!active || dialog !== null || textEntry !== null || isEditableTarget(event.target)) {
         return;
       }
 
@@ -374,7 +373,7 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
     window.addEventListener('paste', onPaste);
 
     return () => window.removeEventListener('paste', onPaste);
-  }, [dialog, importFile, textEntry]);
+  }, [active, dialog, importFile, textEntry]);
 
   // ---- Ctrl+wheel zoom ----------------------------------------------------------
 
@@ -671,8 +670,7 @@ export function PaintApp({ qdn }: { qdn: QdnServicesApi }) {
           qdn={qdn}
           onClose={() => setDialog(null)}
           onSaved={() => {
-            clearAutosave();
-            setToast('Saved.');
+            setToast('Download requested.');
           }}
         />
       ) : null}

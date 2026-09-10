@@ -57,6 +57,7 @@ describe('getInitialDisplaySettings', () => {
     host._qdnTextSize = 'large';
 
     expect(getInitialDisplaySettings()).toEqual({
+      uiStyle: 'classic',
       accent: 'purple',
       textSize: 'large',
       theme: 'dark',
@@ -73,7 +74,7 @@ describe('getInitialDisplaySettings', () => {
 
 describe('applyDisplaySettings', () => {
   it('stamps data attributes and color-scheme onto <html>', () => {
-    applyDisplaySettings({ accent: 'teal', textSize: 'small', theme: 'dark' });
+    applyDisplaySettings({ uiStyle: 'classic', accent: 'teal', textSize: 'small', theme: 'dark' });
 
     const root = document.documentElement;
 

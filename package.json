@@ -1,6 +1,6 @@
 {
   "name": "qortium-paint",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "license": "0BSD",
   "description": "A raster paint and image-editing app for Qortium Home: draw, join images, save locally, or publish to QDN.",

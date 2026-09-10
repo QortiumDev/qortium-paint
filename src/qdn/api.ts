@@ -10,13 +10,14 @@ import type {
   PublishImageParams,
   QdnServicesApi,
 } from '../types';
-import { getBridgeState as getWrapperBridgeState, qdnRequest } from './qdnRequest';
+import { getBridgeState as getWrapperBridgeState, hasHomeBridge, qdnRequest } from './qdnRequest';
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const MAX_IDENTIFIER_BYTES = 64;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9._-]+$/;
 const BASE64_PATTERN = /^[A-Za-z0-9+/]*={0,2}$/;
+export const LOCAL_DOWNLOAD_URL_TTL_MS = 60_000;
 
 const textEncoder = new TextEncoder();
 
@@ -203,6 +204,22 @@ async function publishImage(params: PublishImageParams): Promise<PublishActionRe
 // SAVE_QDN_RESOURCE only saves an already-published resource to disk, so a
 // fresh drawing is saved with a plain browser download instead.
 async function saveLocal(blob: Blob, filename: string): Promise<void> {
+  if (hasHomeBridge()) {
+    try {
+      const hostInfo = await qdnRequest<unknown>({ action: 'GET_HOST_INFO' });
+
+      if (isUnsupportedAndroidHome(hostInfo)) {
+        throw new Error('Fresh file downloads are unsupported by Qortium Home 2.x on Android. Keep the drawing open and use another save route.');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Fresh file downloads are unsupported')) {
+        throw error;
+      }
+      // Older Home versions may not implement GET_HOST_INFO. Preserve the
+      // browser-download fallback when that optional capability is absent.
+    }
+  }
+
   const objectUrl = URL.createObjectURL(blob);
 
   try {
@@ -214,9 +231,21 @@ async function saveLocal(blob: Blob, filename: string): Promise<void> {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), LOCAL_DOWNLOAD_URL_TTL_MS);
+  } catch (error) {
     URL.revokeObjectURL(objectUrl);
+    throw error;
   }
+}
+
+function isUnsupportedAndroidHome(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+
+  const hostName = typeof value.hostName === 'string' ? value.hostName.toLowerCase() : '';
+  const platform = typeof value.platform === 'string' ? value.platform.toLowerCase() : '';
+  const hostVersion = typeof value.hostVersion === 'string' ? value.hostVersion : '';
+
+  return hostName === 'qortium-home' && platform === 'android' && /^2\./.test(hostVersion);
 }
 
 export const qdnServices: QdnServicesApi = {

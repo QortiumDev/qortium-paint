@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MAX_IMAGE_BYTES,
+  LOCAL_DOWNLOAD_URL_TTL_MS,
   blobToBase64,
   qdnServices,
   sanitizeFilename,
@@ -244,7 +245,8 @@ describe('getBridgeState', () => {
 });
 
 describe('saveLocal', () => {
-  it('creates, clicks, and cleans up an object-URL download anchor', async () => {
+  it('creates, clicks, and revokes an object-URL download anchor after the browser has had time to consume it', async () => {
+    vi.useFakeTimers();
     const createObjectURL = vi.fn(() => 'blob:mock-url');
     const revokeObjectURL = vi.fn();
     const originalCreate = URL.createObjectURL;
@@ -282,11 +284,30 @@ describe('saveLocal', () => {
       expect(anchor.download).toBe('my drawing.png');
       expect(anchor.isConnected).toBe(false);
       expect(createObjectURL).toHaveBeenCalledWith(blob);
+      expect(revokeObjectURL).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(LOCAL_DOWNLOAD_URL_TTL_MS);
       expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
     } finally {
+      vi.useRealTimers();
       URL.createObjectURL = originalCreate;
       URL.revokeObjectURL = originalRevoke;
     }
+  });
+
+  it('rejects fresh downloads on Android Qortium Home 2.x before creating an anchor', async () => {
+    const bridge = installBridge(async (request) => {
+      if (request.action === 'GET_HOST_INFO') {
+        return { hostName: 'qortium-home', platform: 'android', hostVersion: '2.4.0' };
+      }
+      throw new Error(`unexpected action: ${request.action}`);
+    });
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL');
+
+    await expect(qdnServices.saveLocal(new Blob(['pixels'], { type: 'image/png' }), 'drawing')).rejects.toThrow(
+      /unsupported by Qortium Home 2.x on Android/i,
+    );
+    expect(bridge).toHaveBeenCalledWith({ action: 'GET_HOST_INFO' });
+    expect(createObjectURL).not.toHaveBeenCalled();
   });
 });
 
